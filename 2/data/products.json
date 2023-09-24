@@ -1,16 +1,1 @@
-[
-  {
-    "id": "433232",
-    "title": "A Book",
-    "imageUrl": "https://static.vecteezy.com/system/resources/previews/009/384/332/original/old-vintage-book-clipart-design-illustration-free-png.png",
-    "description": "This is an awesome book!",
-    "price": "19"
-  },
-  {
-    "title": "new product",
-    "imageUrl": "https://res.cloudinary.com/ruparupa-com/image/upload/h_1000,w_1000,f_auto/f_auto,q_auto:eco/v1552066783/Products/10193791_1.jpg",
-    "description": "teko panas",
-    "price": "20.90",
-    "id": "0.9453563177266737"
-  }
-]
+[{"id":"433232","title":"A Book","imageUrl":"https://static.vecteezy.com/system/resources/previews/009/384/332/original/old-vintage-book-clipart-design-illustration-free-png.png","description":"This is an awesome book!","price":"19"},{"id":"0.9453563177266737","title":"Teko Aluminium","imageUrl":"https://res.cloudinary.com/ruparupa-com/image/upload/h_1000,w_1000,f_auto/f_auto,q_auto:eco/v1552066783/Products/10193791_1.jpg","description":"teko panas tahan lama","price":"5.90"}]
