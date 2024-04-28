@@ -52,18 +52,6 @@ app.use(errorController.get404);
 mongoose
   .connect(process.env.DATABASE_URL)
   .then(result => {
-    User.findOne().then(user => {
-      if (!user) {
-        const user = new User({
-          name: process.env.USER_NAME,
-          email: process.env.USER_NAME,
-          cart: {
-            items: []
-          }
-        });
-        user.save();
-      }
-    });
     console.log('connected to database')
     app.listen(3000);
   })
