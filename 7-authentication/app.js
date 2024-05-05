@@ -32,9 +32,8 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  console.log('userx ', req.session)
   if (!req.session.user) return next();
-  const user = JSON.parse(req.session.user);
+  const user = req.session.user;
   User.findById(user._id)
     .then(user => {
       req.user = user;
