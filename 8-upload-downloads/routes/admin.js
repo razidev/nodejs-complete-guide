@@ -13,7 +13,6 @@ router.get('/products', isAuth, adminController.getProducts);
 // /admin/add-product => POST
 router.post('/add-product', [
     body('title', 'minimum 3 characters').isString().isLength({ min: 3 }).trim(),
-    body('imageUrl', 'URL not valid').isURL(),
     body('price', 'Price not valid').isFloat(),
     body('description', 'minimum 3 and maximum 200 characters').isLength({ min: 5, max: 200 }).trim()
 ], isAuth, adminController.postAddProduct);
