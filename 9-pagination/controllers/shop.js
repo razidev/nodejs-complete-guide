@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const stripe = require('stripe')('sk_test_51KgWmuDkaeBUX0E6g1stHGpezWE1bq23ohn0BLy6V9RvHovrO39Qmyap8CWJnsQlO1hdm4VVVYNg7uXEVbHm4uSm00hM8AFv0z');
 const pdfDocument = require('pdfkit');
 const Product = require('../models/product');
 const Order = require('../models/order');
@@ -129,20 +130,45 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
+  let products;
+  let total;
   req.user
     .populate('cart.items.productId')
     .execPopulate()
     .then(user => {
-      const products = user.cart.items;
-      let total = 0;
+      products = user.cart.items;
+      total = 0;
       products.forEach(product => {
         total += product.quantity * product.productId.price;
       });
+
+      return stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: products.map(p => {
+          return {
+            price_data: {
+             currency: 'usd',
+             unit_amount: p.productId.price * 100,
+              product_data: {
+                name: p.productId.title,
+                description: p.productId.description,
+
+              }
+            },
+            quantity: p.quantity
+          }
+        }),
+        mode: 'payment',
+        success_url: req.protocol + '://' + req.get('host') + '/checkout/success', // => http://localhost:3000/checkout/success
+        cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
+      });
+    }).then(session => {
       res.render('shop/checkout', {
         path: '/checkout',
         pageTitle: 'Checkout',
         products: products,
-        totalSum: total
+        totalSum: total,
+        sessionId: session.id
       });
     })
     .catch(err => {
@@ -152,7 +178,7 @@ exports.getCheckout = (req, res, next) => {
     });
 };
 
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
   req.user
     .populate('cart.items.productId')
     .execPopulate()
