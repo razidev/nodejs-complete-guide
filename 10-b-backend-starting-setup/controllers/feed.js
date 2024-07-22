@@ -1,4 +1,5 @@
 const  { validationResult } =  require('express-validator');
+const Post = require('../models/post');
 
 exports.getPosts = (req, res, next) => {
     res.status(200).json({
@@ -18,24 +19,31 @@ exports.getPosts = (req, res, next) => {
 exports.createPost = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json({
-            message: 'Validation failed',
-            errors: errors.array()
-        });
+        const error = new Error('Validation failed');
+        error.statusCode = 422;
+        throw error; // use throw to reach next middleware error
     }
     const title = req.body.title;
     const content = req.body.content;
-    console.log(req.body)
-    res.status(201).json({
-        message: 'Post created successfully',
-        post: {
-            _id: new Date().toDateString(),
-            title: title,
-            content: content,
-            creator: {
-                name: 'John Doe'
-            },
-            createdAt: new Date()
+    const post = new Post({
+        title: title,
+        content: content,
+        imageUrl: 'images/me.jpg',
+        creator: {
+            name: 'John Doe'
         }
+    });
+    post.save().then(result => {
+        console.log('Created post', result);
+        res.status(201).json({
+            message: 'Post created successfully',
+            post: result
+        })
+    }).catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err); //  use next() to reach next middleware error, because inside the catch block
     })
+    
 };
