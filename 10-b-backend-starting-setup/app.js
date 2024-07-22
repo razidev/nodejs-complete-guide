@@ -1,11 +1,13 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 require('dotenv').config();
 const app = express();
 const feedRoutes = require('./routes/feed');
 
 app.use(bodyParser.json());
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use((req, res, next) => {
    res.setHeader('Access-Control-Allow-Origin', '*');
    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -13,6 +15,13 @@ app.use((req, res, next) => {
    next();
 });
 app.use('/feed', feedRoutes);
+
+app.use((error, req, res, next) => {
+   console.error(error);
+   const status = error.statusCode || 500;
+   const message = error.message;
+   res.status(status).json({ message: message });
+});
 
 mongoose.connect(process.env.DATABASE_URL)
    .then(result => {
