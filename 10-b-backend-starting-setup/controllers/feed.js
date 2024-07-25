@@ -19,12 +19,20 @@ exports.createPost = (req, res, next) => {
         error.statusCode = 422;
         throw error; // use throw to reach next middleware error
     }
+
+    if(!req.file) {
+        const error = new Error('Image is required');
+        error.statusCode = 422;
+        throw error;
+    }
+
+    const imageUrl = req.file.path.replace("\\" ,"/");
     const title = req.body.title;
     const content = req.body.content;
     const post = new Post({
         title: title,
         content: content,
-        imageUrl: 'images/me.jpg',
+        imageUrl: imageUrl,
         creator: {
             name: 'John Doe'
         }
