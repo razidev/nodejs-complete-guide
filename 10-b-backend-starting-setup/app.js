@@ -6,6 +6,7 @@ const path = require('path');
 require('dotenv').config();
 const app = express();
 const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
 
 const fileStorage = multer.diskStorage({
    destination: (req, file, cb) => {
@@ -37,12 +38,14 @@ app.use((req, res, next) => {
    next();
 });
 app.use('/feed', feedRoutes);
+app.use('/auth', authRoutes);
 
 app.use((error, req, res, next) => {
    console.error(error);
    const status = error.statusCode || 500;
    const message = error.message;
-   res.status(status).json({ message: message });
+   const data = error.data;
+   res.status(status).json({ message, data });
 });
 
 mongoose.connect(process.env.DATABASE_URL)
