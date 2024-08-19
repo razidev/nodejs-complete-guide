@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const  { validationResult } =  require('express-validator');
 const Post = require('../models/post');
+const User = require('../models/user');
 
 exports.getPosts = (req, res, next) => {
     const currentPage = req.query.page || 1;
@@ -42,26 +43,38 @@ exports.createPost = (req, res, next) => {
     const imageUrl = req.file.path.replace("\\" ,"/");
     const title = req.body.title;
     const content = req.body.content;
+    let creator;
+
     const post = new Post({
         title: title,
         content: content,
         imageUrl: imageUrl,
-        creator: {
-            name: 'John Doe'
-        }
+        creator: req.userId
     });
-    post.save().then(result => {
-        console.log('Created post', result);
-        res.status(201).json({
-            message: 'Post created successfully',
-            post: result
+    post.save()
+        .then(result => {
+            return User.findById(req.userId);
         })
-    }).catch(err => {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err); //  use next() to reach next middleware error, because inside the catch block
-    })
+        .then (user => {
+            creator = user;
+            user.posts.push(post);
+            return user.save();
+        })
+        .then(result => {
+            res.status(201).json({
+                message: 'Post created successfully',
+                post: post,
+                creator: {
+                    _id: creator._id,
+                    name: creator.name
+                }
+            })
+        }).catch(err => {
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err); //  use next() to reach next middleware error, because inside the catch block
+        })
     
 };
 
