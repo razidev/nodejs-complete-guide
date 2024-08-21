@@ -4,6 +4,11 @@ const  { validationResult } =  require('express-validator');
 const Post = require('../models/post');
 const User = require('../models/user');
 
+const clearImage = filePath => {
+    filePath = path.join(__dirname, '..', filePath);
+    fs.unlink(filePath, err => console.log(err));
+};
+
 exports.getPosts = (req, res, next) => {
     const currentPage = req.query.page || 1;
     const perPage = 2;
@@ -191,7 +196,50 @@ exports.deletePost = (req, res, next) => {
     });
 };
 
-const clearImage = filePath => {
-    filePath = path.join(__dirname, '..', filePath);
-    fs.unlink(filePath, err => console.log(err));
+exports.getStatus = (req, res, next) => {
+    User.findById(req.userId)
+    .then(user => {
+        console.log('user', user);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        res.status(200).json({
+            status: user.status
+        })
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    });
+};
+
+exports.updateStatus = (req, res, next) => {
+    const newStatus = req.body.status;
+    console.log(req.body);
+    User.findById(req.userId)
+   .then(user => {
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        user.status = newStatus;
+        return user.save();
+   })
+   .then(() => {
+        res.status(200).json({
+            message: 'User status updated successfully',
+            status: newStatus
+        })
+    })
+   .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    });
 };
