@@ -49,9 +49,13 @@ app.use((error, req, res, next) => {
 });
 
 mongoose.connect(process.env.DATABASE_URL)
-   .then(result => {
-      app.listen(8080);
+   .then(() => {
+      const server = app.listen(8080);
       console.log('Connected to Server');
+      const io = require('./socket').init(server);
+      io.on('connection', socket => {
+         console.log('CLient connection established');
+      });
    })
    .catch(err => {
       console.log('Error connecting to server:', err);
