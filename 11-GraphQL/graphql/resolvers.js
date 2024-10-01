@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/user');
+const Post = require('../models/post');
 
 module.exports = {
     createUser: async function ({ userInput }, req) {
@@ -51,11 +52,56 @@ module.exports = {
         const token = await jwt.sign({
             userId: user._id.toString(),
             email: user.email
-        }, 'secretjwtket', { expiresIn: '1h' });
+        }, 'secretjwtkey', { expiresIn: '1h' });
 
         return {
             token,
             userId: user._id.toString(),
         };
+    },
+    createPost: async function({ postInput }, req) {
+        if (!req.isAuth) {
+            const error = new Error('Not authenticated!');
+            error.code = 401;
+            throw error;
+        }
+        const  { title, content, imageUrl } = postInput;
+
+        const errors = [];
+        if (validator.isEmpty(title) || !validator.isLength(title, { min: 5})) {
+            errors.push({ message: 'Title must be at least 5 characters long' });
+        }
+        if (validator.isEmpty(content) || !validator.isLength(content, { min: 5})) {
+            errors.push({ message: 'Title must be at least 5 characters long' });
+        }
+        if (errors.length > 0) {
+            const error = new Error('Invalid Input');
+            error.data = errors;
+            error.code = 422;
+            throw error;
+        }
+
+        const user = await User.findById(req.userId);
+        if (!user) {
+            const error = new Error('Invalid User');
+            error.statusCode = 401;
+            throw error;
+        }
+        const post = new Post({
+            title,
+            content,
+            imageUrl,
+            creator: user
+        })
+        const result = await post.save();
+        user.posts.push(result);
+        await user.save();
+
+        return {
+            ...result._doc,
+            _id: result._id.toString(),
+            createdAt: result.createdAt,
+            updateAt: result.updateAt,
+        }
     }
 };
