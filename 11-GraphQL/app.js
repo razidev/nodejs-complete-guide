@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { graphqlHTTP } = require('express-graphql')
 
 const auth = require('./middleware/auth');
@@ -48,6 +49,23 @@ app.use((req, res, next) => {
 
 app.use(auth);
 
+app.put('/image', (req, res, next) => {
+   if (!req.isAuth) {
+      return res.status(401).json({ message: 'Unauthorized' });
+   }
+   if (!req.file) {
+      return res.status(200).json({ message: 'No file provided' });
+   }
+   if (req.body.oldPath) {
+      clearImage(req.body.oldPath);
+   }
+   
+   return res.status(201).json({
+      message: 'File successfully uploaded',
+      filePath: req.file.path.replace(/\\/g, '/')
+   });
+});
+
 app.use('/graphql', graphqlHTTP({
    schema: graphqlSchema,
    rootValue: graphqlResolver,
@@ -78,3 +96,8 @@ mongoose.connect(process.env.DATABASE_URL)
    .catch(err => {
       console.log('Error connecting to server:', err);
    });
+
+const clearImage = filePath => {
+   filePath = path.join(__dirname, '..', filePath);
+   fs.unlink(filePath, err => console.log(err));
+};
