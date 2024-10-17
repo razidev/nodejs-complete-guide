@@ -151,5 +151,52 @@ module.exports = {
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
         }
+    },
+    updatePost: async function({ id, postInput}, req) {
+        if (!req.isAuth) {
+            const error = new Error('Not authenticated!');
+            error.code = 401;
+            throw error;
+        }
+        const post = await Post.findById(id).populate('creator');;
+        if (!post) {
+            const error = new Error('Post not found!');
+            error.statusCode = 404;
+            throw error;
+        }
+        if (post.creator._id.toString() !== req.userId) {
+            const error = new Error('Not authorized to update this post');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const  { title, content, imageUrl } = postInput;
+
+        const errors = [];
+        if (validator.isEmpty(title) || !validator.isLength(title, { min: 5})) {
+            errors.push({ message: 'Title must be at least 5 characters long' });
+        }
+        if (validator.isEmpty(content) || !validator.isLength(content, { min: 5})) {
+            errors.push({ message: 'Title must be at least 5 characters long' });
+        }
+        if (errors.length > 0) {
+            const error = new Error('Invalid Input');
+            error.data = errors;
+            error.code = 422;
+            throw error;
+        }
+
+        post.title = title;
+        post.content = content;
+        if (imageUrl !== 'undefined') {
+            post.imageUrl = imageUrl;
+        }
+        const updatePost = await post.save();
+        return {
+            ...updatePost._doc,
+            _id: updatePost._id.toString(),
+            createdAt: updatePost.createdAt,
+            updatedAt: updatePost.updatedAt,
+        }
     }
 };
