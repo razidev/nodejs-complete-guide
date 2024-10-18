@@ -4,10 +4,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const { graphqlHTTP } = require('express-graphql')
 
 const auth = require('./middleware/auth');
+const { clearImage } = require('./util/file');
+
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolver = require('./graphql/resolvers');
 
@@ -96,8 +97,3 @@ mongoose.connect(process.env.DATABASE_URL)
    .catch(err => {
       console.log('Error connecting to server:', err);
    });
-
-const clearImage = filePath => {
-   filePath = path.join(__dirname, '..', filePath);
-   fs.unlink(filePath, err => console.log(err));
-};
