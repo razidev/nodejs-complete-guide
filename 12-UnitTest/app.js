@@ -61,7 +61,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://razidev:testing123@cluster0.flgpv.mongodb.net/messages?retryWrites=true&w=majority'
+    process.env.DATABASE_URL
   )
   .then(result => {
     app.listen(8080);
