@@ -1,0 +1,1 @@
+Learn deno from scratch, writing this into file
